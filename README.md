@@ -53,10 +53,12 @@ A Google Form is used for student registration. It collects essential details su
 - **Email Address**
 - **Registration Time[autofilled]** 
 - **Registerd Number[autofilled]**
+- ![ScoreBoard](https://github.com/sanuzthapa/Google-Form-with-Auto-Apointment-time/blob/main/assets/fill_form.png)
 
 ## 📊 Response Handling
 
 Google Sheets stores all form responses, and a Google Script processes the data. The script assigns each student a number and an estimated collection time based on the sequence of registrations.
+![ScoreBoard](https://github.com/sanuzthapa/Google-Form-with-Auto-Apointment-time/blob/main/assets/users.png)
 
 ## 🖥️ JavaScript (Google Script Code)
 
@@ -113,6 +115,7 @@ function sendEmailOnFormSubmit(e) {
 ## 🎯 Conclusion
 
 This automated system effectively streamlines the **AGORA food distribution process**, reducing congestion and **improving student experience**. By implementing time-based slots and confirmation emails, students can better plan their schedules, making the distribution process smoother and more efficient.
+![ScoreBoard](https://github.com/sanuzthapa/Google-Form-with-Auto-Apointment-time/blob/main/assets/final.png)
 
 ---
 
