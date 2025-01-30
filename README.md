@@ -1,4 +1,4 @@
-# Live Cricket Scorer App with Google Sheets & Live Streaming Overlay
+# Google Automated Form Designed for AGORA (Free Food Distribution Service for Students)
 
 ## 👋 Hi there, I'm **Sanuz Thapa**
 
@@ -8,123 +8,122 @@
 
 ## 🔍 Project Overview
 
-This project aims to create a **Cricket Scoring App** with a live overlay feature for streaming platforms such as **Prisma Live Studio**. It includes dynamic score updates, a user-friendly Google Sheets interface, and seamless integration for real-time broadcasting.
+L'AGORA (FAGE), a food distribution service for students at subsidized prices in Besançon, is an organization dedicated to student welfare, particularly for those struggling financially. It distributes subsidized food every Wednesday at the university premises (UMLP, formerly known as the University of Franche-Comté).  
+
+Most students register at **16h30** through an online form and arrive at the distribution center at **18h00**, often unaware of when their number will be called. This leads to congestion and overcrowding at the premises.
+
+To address this issue, I designed a system using **Google Scripts** that automates:
+- Sending confirmation messages after registration.
+- Allocating estimated time slots for students based on their registration sequence.
+- Informing students of their registration number and expected time to collect food.
+
+This system aims to **reduce crowding** and **help students plan their schedules efficiently**, preventing long waiting times (which can sometimes extend up to **2 hours** 😃).
 
 ---
 
 ## 🚀 Features
 
-- **User-Friendly GUI in Google Sheets**: Access the scorer interface from anywhere via Google Sheets.
-- **Dynamic Calculations**: Simply input player names (batsmen & bowlers) and update scores live.
-- **Ball-by-Ball Visualization**: Instant updates with live data tracking.
-- **Broadcaster Messages**: Display live messages and announcements.
-- **Live Score Calculation & Display**: Real-time calculations of match statistics for viewers.
+- **User Registration Through Google Form**: Students can register via a Google Form.
+- **Automatic Time Allocation**: The system assigns estimated collection times based on registration order.
+- **Registration Confirmation**: All registered users receive a confirmation message with their allocated time.
 
 ---
 
 ## 📂 Table of Contents
 
 1. [Introduction](#introduction)
-2. [Google Sheets Setup](#google-sheets-setup)
-3. [Implementation](#implementation)
-4. [Generating Live Links & Deployment](#generating-live-links--deployment)
-5. [Hosting on a Server](#hosting-on-a-server)
-6. [Integrating with Live Streaming](#integrating-with-live-streaming)
-7. [Adjustments & Settings](#adjustments--settings)
-8. [Going Live](#going-live)
-9. [Video Demo](#video-demo)
-10. [Conclusion](#conclusion)
+2. [Google Forms](#google-forms)
+3. [Response Handling](#response-handling)
+4. [JavaScript (Google Script Code)](#js-code)
+5. [Code Breakdown](#code-breakdown)
+6. [Conclusion](#conclusion)
 
 ---
 
-## 📚 1. Introduction
+## 📌 Introduction
 
-This project provides a **real-time cricket scoring solution** that integrates Google Sheets with live streaming platforms. The primary goal is to enable broadcasters and streamers to display live scores dynamically without needing additional software.
-![ScoreBoard](https://github.com/sanuzthapa/Live-Cricket-Scorer-APPs-with-GoogleSheets/blob/main/screenboard_preview.png)
----
+In this section, we will discuss the need for automating the student registration and food distribution process at AGORA. The challenges faced due to manual registration and unstructured arrival times will be highlighted.
 
-## 📃 2. Google Sheets Setup
+## 📝 Google Forms
 
-1. Create a **Google Sheet** with columns for: Batsmen, Bowlers, Runs, Wickets, Overs, and Extras.
-2. Use built-in formulas for automatic calculations.
-3. Enable **Google Apps Script** to create dynamic score updates.
-![ScoreBoard](https://github.com/sanuzthapa/Live-Cricket-Scorer-APPs-with-GoogleSheets/blob/main/ScorerGUI.png)
+A Google Form is used for student registration. It collects essential details such as:
+- **Student Name**
+- **Email Address**
+- **Registration Time[autofilled]** 
+- **Registerd Number[autofilled]**
 
-This is the scorebard GUI with all the features dynamically controlled and calculatyed for the scoreer in backend.
----
+## 📊 Response Handling
 
-## 💻 3. Implementation
+Google Sheets stores all form responses, and a Google Script processes the data. The script assigns each student a number and an estimated collection time based on the sequence of registrations.
 
-- Click on Extensions > App Scripts <br>
-  ![AppScript](https://github.com/sanuzthapa/Live-Cricket-Scorer-APPs-with-GoogleSheets/blob/main/appscript.png)
-  <br>
-  
-- New windows will be loaded to Deploy the scipts:
-  <p align="left">
-  <img src="https://github.com/sanuzthapa/Live-Cricket-Scorer-APPs-with-GoogleSheets/blob/main/AppScript_ProjectSection.png" width="auto">
-</p>
+## 🖥️ JavaScript (Google Script Code)
 
-- Next Step is to Deploy the project and gemnerate the link of deployment.
-- 
+The Google Apps Script automates the entire process. It:
+- Extracts form responses from Google Sheets.
+- Assigns sequential numbers to students.
+- Calculates estimated collection times.
+- Sends confirmation emails with registration details.
 
----
+```javascript
+function sendEmailOnFormSubmit(e) {
+    // Get the spreadsheet where form responses are stored
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Form Responses 1"); // Adjust sheet name if needed
+    
+    // Count the number of rows (this includes the header row)
+    const rowCount = sheet.getLastRow(); // Get the total number of rows including header
+    
+    // Get the submitted form data
+    const formResponse = e.values;
+    
+    // Retrieve values based on your sheet's column indexes
+    const name = formResponse[1]; // "Name" is in Column 2
+    const email = formResponse[2]; // "Email" is in Column 3
+    
+    // Calculate the estimated time based on the user's group
+    const baseHour = 18;
+    const baseMinute = 10;
+    
+    // Calculate the 15-minute interval for every 10 users
+    const groupNumber = Math.floor((rowCount - 1) / 10); // Determine group (0 for 1-10, 1 for 11-20, etc.)
+    const estimatedMinute = baseMinute + (groupNumber * 10); // Increases by 10 minutes for each group
+    
+    // Handle cases where minutes go above 60 by adjusting the hour
+    const adjustedHour = baseHour + Math.floor(estimatedMinute / 60);
+    const adjustedMinute = estimatedMinute % 60;
+    
+    const estimatedTime = `${adjustedHour}h${adjustedMinute.toString().padStart(2, '0')}`;
+    
+    // Customize your email subject and message
+    const subject = "Thank you for your submission at AGORA !";
+    const message = `Hello ${name},\n\nThank you for filling out the form.\nYou are registered as user number ${rowCount}.\nYour estimated time is ${estimatedTime}.\n\nBest regards,\nTHAPA Sanuz`;
+    
+    // Send the email
+    MailApp.sendEmail(email, subject, message);
+}}
+```
 
-## 💾 4. Generating Live Links & Deployment
-![Deploy](https://github.com/sanuzthapa/Live-Cricket-Scorer-APPs-with-GoogleSheets/blob/main/deployment1.png)
-- **Deploy > New Deployment**
-![Deploy2](https://github.com/sanuzthapa/Live-Cricket-Scorer-APPs-with-GoogleSheets/blob/main/deployment2.png)
-**Add name, Description and access and deploy and copy the link or Simply lcik on the link**<br>
-![ScoreBoard](https://github.com/sanuzthapa/Live-Cricket-Scorer-APPs-with-GoogleSheets/blob/main/screenboard_preview.png)
----
+## 🔍 Code Breakdown
 
-## 🛡️ 5. Hosting on a Server
-**(Optinal yet reccommended)**
-- Use **free web hosting platforms** (e.g., GitHub Pages, Firebase, or any free hosting service).
-- Ensure that the server fetches the live data from Google Sheets periodically.
+1. **Fetching Google Sheets Data**: The script retrieves responses from the Google Sheet.
+2. **Assigning Time Slots**: Each group of Students (1-10,11-20,21-30,...) are assigned a 10-minute slot based on their registration sequence groups.
+3. **Sending Emails**: Google Apps Script uses `MailApp.sendEmail()` to notify students of their registration details, allocated time and Sequence in Registration.
 
----
+## 🎯 Conclusion
 
-## 🎥 6. Integrating with Live Streaming
-![ScoreBoard](https://github.com/sanuzthapa/Live-Cricket-Scorer-APPs-with-GoogleSheets/blob/main/screenboard_preview.png)
-- Connect **Prisma Live Studio** with the hosted JSON API.
-- Use **OBS Studio or similar tools** to overlay the live scores on the stream.
-- Customize the scoreboard appearance for better visibility.
-
----
-
-## 🔧 7. Adjustments & Settings
-
-- Fine-tune fonts, colors, and positioning of overlays.
-- Adjust refresh intervals to optimize live updates.
-- Ensure cross-device compatibility.
-
----
-
-## 📺 8. Going Live
-
-- Start the **live match broadcast**.
-- Verify that the **score overlay updates in real-time**.
-- Troubleshoot any lags or errors in data fetching.
-
----
-
-## 🎬 9. Video Demo
-
-A **step-by-step video tutorial** will be added to demonstrate the full process of setting up and deploying this system. Stay tuned!
+This automated system effectively streamlines the **AGORA food distribution process**, reducing congestion and **improving student experience**. By implementing time-based slots and confirmation emails, students can better plan their schedules, making the distribution process smoother and more efficient.
 
 ---
 
-## 📊 10. Conclusion
-
-This project provides an efficient and cost-effective solution for live cricket scoring with real-time overlays. Using **Google Sheets, Google Apps Script, and streaming tools**, anyone can create a professional scoreboard without investing in expensive software.
-
+💡 **Future Improvements**:
+- Implement SMS notifications.
+- Allow students to reschedule their time slots.
+- Develop a real-time tracking system to update students on wait times.
 ---
-
 ## 🔧 Tools & Technologies
 
-- **Languages**: JavaScript (Google Apps Script), HTML, CSS
-- **Platforms**: Google Sheets, Prisma Live Studio, OBS Studio
-- **Hosting**: GitHub Pages, Firebase, Free Web Hosting Services
+- **Languages**: JavaScript (Google Apps Script), Google Forms
+- **Platforms**: Google forrms, GoogleSheets.
+- **Hosting**: Normal Gmail for Sending automated Response.
 
 ---
 
@@ -132,5 +131,3 @@ This project provides an efficient and cost-effective solution for live cricket 
 
 - 📧 Email: [sanuzh.thapa@gmail.com](mailto:sanuzh.thapa@gmail.com)
 - 🌐 LinkedIn: [Sanuz Thapa](https://linkedin.com/in/sanuz-thapa)
-
----
